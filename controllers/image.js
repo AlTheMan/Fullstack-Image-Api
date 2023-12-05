@@ -5,10 +5,10 @@ import fs from 'fs'
 
 export const newImage = async (req, res, next) => {
     try {
-        const userId = req.body.userId;
+        const patientId = req.body.patientId;
         const filePath = req.file.path
 
-        let image = await Image.findOne({userId: userId})
+        let image = await Image.findOne({patientId: patientId})
 
         if (image){
             image.imagePath.push(filePath)
@@ -17,7 +17,7 @@ export const newImage = async (req, res, next) => {
         } else {
             image = new Image({
                 _id: new mongoose.Types.ObjectId(),
-                userId: userId,
+                patientId: patientId,
                 imagePath: [filePath]
             });
         }
@@ -40,8 +40,8 @@ export const newImage = async (req, res, next) => {
 
 export const getUserImages = async (req, res, next) => {
     try {
-        const userId = req.query.userId;
-        let images = await Image.findOne({userId: userId});
+        const patientId = req.query.patientId;
+        let images = await Image.findOne({patientId: patientId});
 
         if (!images || !images.imagePath || images.imagePath.length === 0) {
             return res.status(404).json({ message: "No images for that user found" });
@@ -49,7 +49,7 @@ export const getUserImages = async (req, res, next) => {
         // returns the url for the image (not the image itself)
         const imageUrls = images.imagePath.map(path => `${req.protocol}://${req.get('host')}/${path}`);
         res.json({ 
-            userId: userId,
+            patientId: patientId,
             imageUrls: imageUrls });
     } catch (error) {
         next(error)
@@ -58,8 +58,8 @@ export const getUserImages = async (req, res, next) => {
 
 export const deleteAllUserImages = async (req, res, next) => {
     try {
-        const userId = req.params.userId
-        let userImages = await Image.findOne({userId: userId});
+        const patientId = req.params.patientId
+        let userImages = await Image.findOne({patientId: patientId});
 
 
         if (userImages && userImages.imagePath.length > 0) {
@@ -73,9 +73,9 @@ export const deleteAllUserImages = async (req, res, next) => {
 
             userImages.imagePath = [];
             await userImages.save();
-            res.status(200).json({message: "All images deleted for user ", userId})
+            res.status(200).json({message: "All images deleted for user ", patientId})
         } else {
-            res.status(404).json({message: "No images found for the user ", userId })
+            res.status(404).json({message: "No images found for the user ", patientId })
         }
 
 
@@ -86,10 +86,10 @@ export const deleteAllUserImages = async (req, res, next) => {
 
 export const deleteUserImage = async (req, res, next) => {
     try {
-        const userId = req.query.userId
+        const patientId = req.query.patientId
         const imagePath = req.query.imagePath
 
-        let userImages = await Image.findOne({userId: userId});
+        let userImages = await Image.findOne({patientId: patientId});
 
         if (userImages && imagePath.length > 0) {
             if (userImages.imagePath.includes(imagePath)) {

@@ -37,6 +37,6 @@ const upload = multer({
 router.post("/image", upload.single("image"), newImage);
 router.get("/image", getUserImages);
 router.delete("/image", deleteUserImage);
-router.delete("/image/:userId", deleteAllUserImages)
+router.delete("/image/:patientId", deleteAllUserImages)
 
 export default router;

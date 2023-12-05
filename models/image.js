@@ -3,7 +3,7 @@ const { Schema } = mongoose
 
 const imageSchema = new Schema(
     {
-        userId: Number,
+        patientId: Number,
         imagePath: [String]
     }
 );
