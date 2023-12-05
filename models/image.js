@@ -1,10 +1,11 @@
 import mongoose from "mongoose"
+const { Schema } = mongoose
 
 const imageSchema = new Schema(
     {
         userId: Number,
-        imageId: String
+        imagePath: [String]
     }
-)
+);
 
-const imageModel = mongoose.model('Images', imageSchema)
+export const Image = mongoose.model('Images', imageSchema)
