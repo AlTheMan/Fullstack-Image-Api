@@ -1,45 +1,13 @@
 import mongoose from "mongoose";
 import { Image } from "../models/image.js"
-import multer from "multer";
+import fs from 'fs'
 
 
 export const newImage = async (req, res, next) => {
-
-    // filename and placement
-    const storage = multer.diskStorage({
-        destination: function (req, file, cb) {
-          cb(null, "./uploads/");
-        },
-        filename: function (req, file, cb) {
-          const uniqueSuffix =
-            new Date().toISOString().replace(/:/g, "-") + "-" + file.originalname;
-          cb(null, uniqueSuffix);
-        },
-      });
-      
-      // filter
-      const fileFilter = (req, file, cb) => {
-        if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-          cb(null, true); // picture is saved
-        } else {
-          cb(null, false); // not saved
-        }
-      };
-      
-      // preferences for the picture
-      const upload = multer({
-        storage: storage,
-        limits: {
-          fieldSize: 1024 * 1024 * 5
-        },
-        fileFilter: fileFilter
-      });
-
     try {
         const userId = req.body.userId;
         const filePath = req.file.path
-        
-        // if pictures from that user exists
+
         let image = await Image.findOne({userId: userId})
 
         if (image){
@@ -54,16 +22,21 @@ export const newImage = async (req, res, next) => {
             });
         }
         await image.save();
-        upload.single("image") // saves the file to disk
+        
         res.json({message: "Image saved successfully"});
     } catch (error) {
+
+        console.error("Error saveing image to db", error)
+        res.status(500).json({message: "Failed to save image"})
+
+        fs.unlink(filePath, (err) => {
+            if (err) console.error("Error removing file", err);
+        });
+
         next(error)
     }
 }
 
-export const getAllImages = (req, res, next) => {
-    res.json({message: "GET all images"})
-}
 
 export const getUserImages = async (req, res, next) => {
     try {
@@ -78,6 +51,64 @@ export const getUserImages = async (req, res, next) => {
         res.json({ 
             userId: userId,
             imageUrls: imageUrls });
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const deleteAllUserImages = async (req, res, next) => {
+    try {
+        const userId = req.params.userId
+        let userImages = await Image.findOne({userId: userId});
+
+
+        if (userImages && userImages.imagePath.length > 0) {
+            userImages.imagePath.forEach(path => {
+                fs.unlink(path, (err) => {
+                    if (err) {
+                        console.log("Error deleting file (might have not existed)", err)
+                    }
+                });
+            });
+
+            userImages.imagePath = [];
+            await userImages.save();
+            res.status(200).json({message: "All images deleted for user ", userId})
+        } else {
+            res.status(404).json({message: "No images found for the user ", userId })
+        }
+
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const deleteUserImage = async (req, res, next) => {
+    try {
+        const userId = req.query.userId
+        const imagePath = req.query.imagePath
+
+        let userImages = await Image.findOne({userId: userId});
+
+        if (userImages && imagePath.length > 0) {
+            if (userImages.imagePath.includes(imagePath)) {
+                userImages.imagePath = userImages.imagePath.filter(path => path !== imagePath)
+
+                fs.unlink(imagePath, (err) => {
+                    if (err) {
+                        console.error(err);
+                        res.status(500).json({message: "Error deleting file"});
+                        return;
+                    }
+                })
+
+                await userImages.save();
+                res.status(200).json({message: "Image deleted successfully"});
+            } else {
+                res.status(404).json({message: "Image path was not found for that user"})
+            }
+        }
     } catch (error) {
         next(error)
     }
