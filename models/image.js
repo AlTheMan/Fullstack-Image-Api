@@ -16,4 +16,4 @@ const patientSchema = new Schema(
 );
 
 export const Patient = mongoose.model('Patients', patientSchema)
-export const Image = mongoose.model('Images', imageSchema)
+//export const Image = mongoose.model('Images', imageSchema, ) // i dont want this to appear in the db

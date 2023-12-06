@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserImages, newImage, deleteUserImage, deleteAllUserImages } from "../controllers/image.js";
+import { getUserImageMetadata, newImage, deleteUserImage, deleteAllUserImages, getImage } from "../controllers/image.js";
 import multer from "multer";
 
 const router = express.Router();
@@ -26,7 +26,8 @@ const upload = multer({
 });
 
 router.post("/image", upload.single("image"), newImage);
-router.get("/image", getUserImages);
+router.get("/image", getImage)
+router.get("/image_data", getUserImageMetadata);
 router.delete("/image", deleteUserImage);
 router.delete("/image/:patientId", deleteAllUserImages)
 
