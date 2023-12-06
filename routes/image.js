@@ -5,16 +5,7 @@ import multer from "multer";
 const router = express.Router();
 
  // filename and placement
- const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix =
-      new Date().toISOString().replace(/:/g, "-") + "-" + file.originalname;
-    cb(null, uniqueSuffix);
-  },
-});
+ const storage = multer.memoryStorage()
 
 // filter
 const fileFilter = (req, file, cb) => {

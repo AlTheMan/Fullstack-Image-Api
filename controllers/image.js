@@ -1,37 +1,40 @@
 import mongoose from "mongoose";
-import { Image } from "../models/image.js"
+import { Patient, Image } from "../models/image.js"
 import fs from 'fs'
 
 
 export const newImage = async (req, res, next) => {
     try {
         const patientId = req.body.patientId;
-        const filePath = req.file.path
+        const description = req.body.description;
+        const mimetype = req.file.mimetype;
+        const data = req.file.buffer;
+        
+        let image = new Image({
+            _id: new mongoose.Types.ObjectId(),
+            description: description,
+            data: data,
+            contentType: mimetype
+        });
 
-        let image = await Image.findOne({patientId: patientId})
+        let patient = await Patient.findOne({patientId: patientId})
 
-        if (image){
-            image.imagePath.push(filePath)
-
-        // if not, create a new object
-        } else {
-            image = new Image({
+        if (!patient){
+            patient = new Patient({
                 _id: new mongoose.Types.ObjectId(),
                 patientId: patientId,
-                imagePath: [filePath]
-            });
+                images: []
+            });   
         }
-        await image.save();
+
+        patient.images.push(image);
+        await patient.save();
         
         res.json({message: "Image saved successfully"});
     } catch (error) {
 
         console.error("Error saveing image to db", error)
         res.status(500).json({message: "Failed to save image"})
-
-        fs.unlink(filePath, (err) => {
-            if (err) console.error("Error removing file", err);
-        });
 
         next(error)
     }
@@ -41,16 +44,26 @@ export const newImage = async (req, res, next) => {
 export const getUserImages = async (req, res, next) => {
     try {
         const patientId = req.query.patientId;
-        let images = await Image.findOne({patientId: patientId});
+        let patient = await Patient.findOne({patientId: patientId});
 
-        if (!images || !images.imagePath || images.imagePath.length === 0) {
+        if (!patient || !patient.images || patient.images.length === 0) {
             return res.status(404).json({ message: "No images for that user found" });
         }
-        // returns the url for the image (not the image itself)
-        const imageUrls = images.imagePath.map(path => `${req.protocol}://${req.get('host')}/${path}`);
-        res.json({ 
+
+        let imageArray = patient.images.map(image => {
+            //const base64Image = image.data.toString('base64');
+            return {
+                imageId: image.id,
+                description: image.description,
+                contentType: image.contentType,
+                //data: base64Image
+            }
+        })
+        
+        res.json({
+            mongoId: patient.id,
             patientId: patientId,
-            imageUrls: imageUrls });
+            images: imageArray });
     } catch (error) {
         next(error)
     }
@@ -59,19 +72,12 @@ export const getUserImages = async (req, res, next) => {
 export const deleteAllUserImages = async (req, res, next) => {
     try {
         const patientId = req.params.patientId
-        let userImages = await Image.findOne({patientId: patientId});
+        let userImages = await Patient.findOne({patientId: patientId});
 
 
-        if (userImages && userImages.imagePath.length > 0) {
-            userImages.imagePath.forEach(path => {
-                fs.unlink(path, (err) => {
-                    if (err) {
-                        console.log("Error deleting file (might have not existed)", err)
-                    }
-                });
-            });
+        if (userImages && userImages.images.length > 0) {
 
-            userImages.imagePath = [];
+            userImages.images = []
             await userImages.save();
             res.status(200).json({message: "All images deleted for user ", patientId})
         } else {
