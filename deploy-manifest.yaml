@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imageapi-deployment
+  labels:
+    app: imageapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: imageapi
+  template:
+    metadata:
+      labels:
+        app: imageapi
+    spec:
+      containers:
+        - name: imageapi
+          image: registry.cloud.cbh.kth.se/deploy-c4eed4d9-2bc5-4bab-a9a4-e9d756ba89bc/image-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: imageapi-service
+spec:
+  selector:
+    app: imageapi
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
