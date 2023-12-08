@@ -8,7 +8,9 @@ import cors from 'cors'
 config();
 
 
-mongoose.connect('mongodb://localhost:27017/mongodb');
+//mongoose.connect('mongodb://mongo:1234@vm.cloud.cbh.kth.se:2778/patientImages?authSource=admin');
+
+mongoose.connect('mongodb://mongo:1234@vm.cloud.cbh.kth.se:2778/patientImages?authMechanism=DEFAULT&authSource=admin');
 mongoose.Promise = global.Promise;
 
 
