@@ -40,6 +40,6 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: registry.cloud.cbh.kth.se/your-image-name:${{ github.sha }}
+        tags: ${{ secrets.DOCKER_TAG }}
         build-args:
           MONGODB_URI=${{ secrets.MONGODB_URI }} # Pass environment variable as build-arg
