@@ -1,43 +1,47 @@
 import mongoose from "mongoose";
 import { Patient } from "../models/image.js";
 
-export const postImage = async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No image file provided" });
-      }
-  
-      const { patientId, description, imageId } = req.body;
-      const { mimetype, buffer } = req.file;
-  
-      let patient = await Patient.findOne({ patientId });
-  
-      if (!patient) {
-        return res.status(404).json({ message: "Patient not found" });
-      }
-  
-      let image = patient.images.id(imageId);
-  
-      if (image) {
-        image.description = description;
-        image.data = buffer;
-        image.contentType = mimetype;
-      } else {
-        image = { _id: new mongoose.Types.ObjectId(), description: description, data: buffer, contentType: mimetype };
-        patient.images.push(image);
-      }
-  
-      await patient.save();
-  
-      res.json({ message: "Image saved successfully" });
-    } catch (error) {
-      console.error("Error saving image to db", error);
-      res.status(500).json({ message: "Failed to save image" });
+export const putImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image file provided" });
     }
-  };
-  
 
-export const newImage = async (req, res, next) => {
+    const { patientId, description, imageId } = req.body;
+    const { mimetype, buffer } = req.file;
+
+    let patient = await Patient.findOne({ patientId });
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    let image = patient.images.find((img) => img._id.toString() === imageId);
+
+    if (image) {
+      image.description = description;
+      image.data = buffer;
+      image.contentType = mimetype;
+    } else {
+      image = {
+        _id: new mongoose.Types.ObjectId(),
+        description: description,
+        data: buffer,
+        contentType: mimetype,
+      };
+      patient.images.push(image);
+    }
+
+    await patient.save();
+
+    res.status(200).json({ message: "Image saved successfully" });
+  } catch (error) {
+    console.error("Error saving image to db", error);
+    res.status(500).json({ message: "Failed to save image" });
+  }
+};
+
+export const postImage = async (req, res, next) => {
   try {
     const patientId = req.body.patientId;
     const description = req.body.description;
@@ -51,7 +55,7 @@ export const newImage = async (req, res, next) => {
       contentType: mimetype,
     };
 
-    console.log("Fetching patient...")
+    console.log("Fetching patient...");
     let patient = await Patient.findOne({ patientId: patientId });
 
     if (!patient) {
@@ -86,14 +90,14 @@ export const getUserImageMetadata = async (req, res, next) => {
     let imageArray = patient.images.map((image) => {
       //const base64Image = image.data.toString('base64');
       return {
-        imageId: image.id,
+        imageId: image._id.toString(),
         description: image.description,
         contentType: image.contentType, //data: base64Image
       };
     });
 
     res.json({
-      mongoId: patient.id,
+      mongoId: patient._id.toString(),
       patientId: patientId,
       images: imageArray,
     });
@@ -107,9 +111,9 @@ export const getImage = async (req, res, next) => {
     const imageId = req.query.imageId;
     const mongoId = req.query.mongoId;
 
-    let patient = await Patient.findById(mongoId);
+    let patient = await Patient.findOne({ _id: mongoId });
     if (patient) {
-      let image = patient.images.id(imageId);
+      let image = patient.images.find((img) => img._id.toString() === imageId);
       if (image) {
         const base64Image = image.data.toString("base64");
         const contentType = image.contentType;
@@ -151,17 +155,26 @@ export const deleteAllUserImages = async (req, res, next) => {
 
 export const deleteUserImage = async (req, res, next) => {
   try {
-    const mongoId = req.query.mongoId;
-    const imageId = req.query.imageId;
-
-    let patient = await Patient.findById(mongoId);
-
+    const { imageId, patientId } = req.query;
+    let patient = await Patient.findOne({ patientId: patientId });
     if (patient && patient.images.length > 0) {
-      patient.images.id(imageId).deleteOne();
-      await patient.save();
-      res.status(200).json({ message: "Image deleted" });
+      const imageIndex = patient.images.findIndex(
+        (img) => img._id.toString() === imageId
+      );
+
+      if (imageIndex !== -1) {
+        patient.images.splice(imageIndex, 1);
+        await patient.save();
+        res.status(200).json({ message: "Image deleted" });
+      } else {
+        // Image not found
+        res.status(404).json({ message: "Image not found" });
+      }
+    } else {
+      res.status(404).json({ message: "Patient or images not found" });
     }
   } catch (error) {
+    console.error("Error deleting image: ", error);
     next(error);
   }
 };
