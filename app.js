@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 
 config();
-mongoose.connect(process.env.MONGODB_URI);
+mongoose.connect("mongodb://mongo:1234@vm.cloud.cbh.kth.se:2778/patientImages?authMechanism=DEFAULT&authSource=admin");
 mongoose.Promise = global.Promise;
 
 const app = express();
