@@ -16,8 +16,4 @@ app.use('/', imageRoutes);
 app.use('/', healthRoutes);
 app.use('/uploads', express.static('uploads'));
 
-app.get('/', (req, res) => {
-  res.send('Express + TypeScript Server');
-});
-
 export default app;
