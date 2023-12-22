@@ -5,8 +5,13 @@ import healthRoutes from './routes/health.js'
 import mongoose from 'mongoose';
 import cors from 'cors';
 
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+
 config();
-mongoose.connect("mongodb://mongo:1234@vm.cloud.cbh.kth.se:2778/patientImages?authMechanism=DEFAULT&authSource=admin");
+mongoose.connect(process.env.MONGODB_URI);
 mongoose.Promise = global.Promise;
 
 const app = express();
