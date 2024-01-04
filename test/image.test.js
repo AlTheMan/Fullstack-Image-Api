@@ -4,6 +4,7 @@ import request from "supertest";
 import app from "../app.js";
 import dotenv from "dotenv";
 import { Patient } from "../models/image.js";
+import {getKeycloakToken} from "./keycloak.js"
 
 dotenv.config();
 
@@ -23,12 +24,14 @@ afterEach(async () => {
 describe("POST /image", () => {
   it("should create a new image and a patient if the patient doesn't exist", async () => {
     Patient.findOne.mockResolvedValue(null);
+    const token = await getKeycloakToken()
     const file = Buffer.from("fake_image_data");
     const response = await request(app)
       .post("/image")
       .field("patientId", "12345")
       .field("description", "Test Description")
-      .attach("image", file, "test.png");
+      .attach("image", file, "test.png")
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
@@ -40,6 +43,7 @@ describe("POST /image", () => {
 describe("PUT /image", () => {
   it("should alter the image if the patient id exists", async () => {
     // Mock the findOne function to return a patient
+    const token = await getKeycloakToken()
     const mockPatient = {
       _id: new mongoose.Types.ObjectId(),
       patientId: "12345",
@@ -62,8 +66,9 @@ describe("PUT /image", () => {
       .put("/image")
       .field("patientId", "12345")
       .field("description", "Updated Description")
-      .field("imageId", mockPatient.images[0]._id.toString()) // Replace with an actual image ID
-      .attach("image", file, "updated.png"); // Ensure this matches the field expected by your middleware
+      .field("imageId", mockPatient.images[0]._id.toString())
+      .attach("image", file, "updated.png")
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
@@ -80,7 +85,7 @@ describe("PUT /image", () => {
   });
 });
 
-describe("GET image_data", () => {
+describe("GET image data", () => {
   it("should get information about all images of a specific patient", async () => {
     const mockPatient = {
       _id: "mockMongoId",
@@ -97,8 +102,8 @@ describe("GET image_data", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient); // Mock findOne to return the mock patient
-
-    const response = await request(app).get("/image_data?patientId=12345");
+    const token = await getKeycloakToken()
+    const response = await request(app).get("/image/data?patientId=12345").set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(200);
 
@@ -136,9 +141,10 @@ describe("GET /image", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient);
+    const token = await getKeycloakToken()
     const response = await request(app).get(
       "/image?imageId=" + mockImage._id + "&mongoId=" + mockPatient._id
-    );
+    ).set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
@@ -174,14 +180,14 @@ describe("Delete /image/:patientId", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient);
-
-    let response = await request(app).delete("/image/:" + mockPatient._id);
+    const token = await getKeycloakToken()
+    let response = await request(app).delete("/image/:" + mockPatient._id).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
 
     Patient.findOne.mockResolvedValue(null);
     response = await request(app).delete(
       "/image/:" + new mongoose.Types.ObjectId()
-    );
+    ).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(404);
   });
 });
@@ -203,13 +209,13 @@ describe("Delete /image/", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient)
-
+    const token = await getKeycloakToken()
     const response = await request(app)
       .delete("/image")
       .query({
         patientId: mockPatient.patientId.toString(),
         imageId: mockPatient.images[0]._id.toString(),
-      });
+      }).set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: mockPatient.patientId });
