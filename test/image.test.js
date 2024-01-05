@@ -37,11 +37,11 @@ describe("POST /image", () => {
       .attach("image", file, "test.png")
       .set('Authorization', `Bearer ${token}`);
 
-<<<<<<< Updated upstream
-=======
+
+
     console.log(response.body)
 
->>>>>>> Stashed changes
+
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
 
@@ -79,11 +79,11 @@ describe("PUT /image", () => {
       .attach("image", file, "updated.png")
       .set('Authorization', `Bearer ${token}`);
 
-<<<<<<< Updated upstream
-=======
+
+
     console.log(response.body)
 
->>>>>>> Stashed changes
+
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
 
