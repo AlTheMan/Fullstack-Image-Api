@@ -33,6 +33,8 @@ describe("POST /image", () => {
       .attach("image", file, "test.png")
       .set('Authorization', `Bearer ${token}`);
 
+    console.log(response.toString())
+
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
 
@@ -69,6 +71,8 @@ describe("PUT /image", () => {
       .field("imageId", mockPatient.images[0]._id.toString())
       .attach("image", file, "updated.png")
       .set('Authorization', `Bearer ${token}`);
+
+    console.log(response.toString())
 
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
