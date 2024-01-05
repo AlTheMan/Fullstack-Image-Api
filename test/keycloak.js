@@ -32,6 +32,3 @@ export async function getKeycloakToken() {
     }
 }
 
-getKeycloakToken().then(token => {
-    console.log('Token:', token);
-});

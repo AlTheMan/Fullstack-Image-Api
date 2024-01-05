@@ -25,6 +25,10 @@ describe("POST /image", () => {
   it("should create a new image and a patient if the patient doesn't exist", async () => {
     Patient.findOne.mockResolvedValue(null);
     const token = await getKeycloakToken()
+
+    console.log("Token: ", token)
+
+
     const file = Buffer.from("fake_image_data");
     const response = await request(app)
       .post("/image")
@@ -33,6 +37,11 @@ describe("POST /image", () => {
       .attach("image", file, "test.png")
       .set('Authorization', `Bearer ${token}`);
 
+<<<<<<< Updated upstream
+=======
+    console.log(response.body)
+
+>>>>>>> Stashed changes
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
 
@@ -70,6 +79,11 @@ describe("PUT /image", () => {
       .attach("image", file, "updated.png")
       .set('Authorization', `Bearer ${token}`);
 
+<<<<<<< Updated upstream
+=======
+    console.log(response.body)
+
+>>>>>>> Stashed changes
     expect(response.statusCode).toBe(200);
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
 
