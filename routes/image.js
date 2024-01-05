@@ -26,7 +26,6 @@ const imageRouter = (keycloak) => {
     fileFilter: fileFilter
   });
 
-  // Apply Keycloak protection to the routes that require it
   router.post("", keycloak.protect(), upload.single("image"), postImage);
   router.put("", keycloak.protect(), upload.single("image"), putImage);
   router.get("", keycloak.protect(), getImage);
