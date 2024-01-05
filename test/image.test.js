@@ -26,7 +26,7 @@ describe("POST /image", () => {
     Patient.findOne.mockResolvedValue(null);
     const token = await getKeycloakToken()
 
-    console.log("Token: ", token)
+    console.log("Token: ", token.toString().charAt(0))
 
 
     const file = Buffer.from("fake_image_data");
