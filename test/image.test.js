@@ -6,7 +6,15 @@ import dotenv from "dotenv";
 import { Patient } from "../models/image.js";
 import {getKeycloakToken} from "./keycloak.js"
 
-dotenv.config();
+dotenv.config()
+
+let token = ""
+
+beforeAll(async () => {
+  token = await getKeycloakToken();
+  console.log(token.charAt(0))
+})
+
 
 /* Connect to db before test */
 beforeEach(async () => {
@@ -24,7 +32,7 @@ afterEach(async () => {
 describe("POST /image", () => {
   it("should create a new image and a patient if the patient doesn't exist", async () => {
     Patient.findOne.mockResolvedValue(null);
-    const token = await getKeycloakToken()
+    //const token = await getKeycloakToken()
 
     console.log("Token: ", token.toString().charAt(0))
 
@@ -52,7 +60,7 @@ describe("POST /image", () => {
 describe("PUT /image", () => {
   it("should alter the image if the patient id exists", async () => {
     // Mock the findOne function to return a patient
-    const token = await getKeycloakToken()
+    //const token = await getKeycloakToken()
     const mockPatient = {
       _id: new mongoose.Types.ObjectId(),
       patientId: "12345",
@@ -116,7 +124,7 @@ describe("GET image data", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient); // Mock findOne to return the mock patient
-    const token = await getKeycloakToken()
+    //const token = await getKeycloakToken()
     const response = await request(app).get("/image/data?patientId=12345").set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(200);
@@ -155,7 +163,7 @@ describe("GET /image", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient);
-    const token = await getKeycloakToken()
+    //const token = await getKeycloakToken()
     const response = await request(app).get(
       "/image?imageId=" + mockImage._id + "&mongoId=" + mockPatient._id
     ).set('Authorization', `Bearer ${token}`);
@@ -194,7 +202,7 @@ describe("Delete /image/:patientId", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient);
-    const token = await getKeycloakToken()
+    //const token = await getKeycloakToken()
     let response = await request(app).delete("/image/:" + mockPatient._id).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
 
@@ -223,7 +231,7 @@ describe("Delete /image/", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient)
-    const token = await getKeycloakToken()
+    //const token = await getKeycloakToken()
     const response = await request(app)
       .delete("/image")
       .query({
