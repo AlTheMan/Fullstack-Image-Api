@@ -32,10 +32,7 @@ afterEach(async () => {
 describe("POST /image", () => {
   it("should create a new image and a patient if the patient doesn't exist", async () => {
     Patient.findOne.mockResolvedValue(null);
-    //const token = await getKeycloakToken()
-
     console.log("Token: ", token.toString().charAt(0))
-
 
     const file = Buffer.from("fake_image_data");
     const response = await request(app)
@@ -60,11 +57,10 @@ describe("POST /image", () => {
 describe("PUT /image", () => {
   it("should alter the image if the patient id exists", async () => {
     // Mock the findOne function to return a patient
-    //const token = await getKeycloakToken()
-    const mockPatient = {
+  const mockPatient = {
       _id: new mongoose.Types.ObjectId(),
       patientId: "12345",
-      images: [
+    images: [
         {
           _id: new mongoose.Types.ObjectId(), // Replace with an actual image ID
           description: "Initial Description",
@@ -124,11 +120,9 @@ describe("GET image data", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient); // Mock findOne to return the mock patient
-    //const token = await getKeycloakToken()
-    const response = await request(app).get("/image/data?patientId=12345").set('Authorization', `Bearer ${token}`);
+  const response = await request(app).get("/image/data?patientId=12345").set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(200);
-
     console.log(response.body);
 
     expect(Patient.findOne).toHaveBeenCalledWith({ patientId: "12345" });
@@ -163,11 +157,9 @@ describe("GET /image", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient);
-    //const token = await getKeycloakToken()
-    const response = await request(app).get(
+  const response = await request(app).get(
       "/image?imageId=" + mockImage._id + "&mongoId=" + mockPatient._id
     ).set('Authorization', `Bearer ${token}`);
-
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
       description: "Test Image",
@@ -202,11 +194,10 @@ describe("Delete /image/:patientId", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient);
-    //const token = await getKeycloakToken()
-    let response = await request(app).delete("/image/:" + mockPatient._id).set('Authorization', `Bearer ${token}`);
+  let response = await request(app).delete("/image/:" + mockPatient._id).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
 
-    Patient.findOne.mockResolvedValue(null);
+  Patient.findOne.mockResolvedValue(null);
     response = await request(app).delete(
       "/image/:" + new mongoose.Types.ObjectId()
     ).set('Authorization', `Bearer ${token}`);
@@ -231,11 +222,10 @@ describe("Delete /image/", () => {
     };
 
     Patient.findOne.mockResolvedValue(mockPatient)
-    //const token = await getKeycloakToken()
-    const response = await request(app)
+  const response = await request(app)
       .delete("/image")
       .query({
-        patientId: mockPatient.patientId.toString(),
+      patientId: mockPatient.patientId.toString(),
         imageId: mockPatient.images[0]._id.toString(),
       }).set('Authorization', `Bearer ${token}`);
 
